@@ -1,13 +1,14 @@
 'use strict';
 var path = require('path');
 var fs = require('fs');
-var webpack = require('webpack');
-var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
-var HtmlwebpackPlugin = require('html-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
-var ForkCheckerPlugin = require('awesome-typescript-loader').ForkCheckerPlugin;
-var ChangeModePlugin = require('./plugins/ChangeModePlugin');
-var autoprefixer = require('autoprefixer');
+const webpack = require('webpack');
+const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
+const HtmlwebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ForkCheckerPlugin = require('awesome-typescript-loader').ForkCheckerPlugin;
+const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin');
+const ChangeModePlugin = require('./plugins/ChangeModePlugin');
+const autoprefixer = require('autoprefixer');
 var DEFAULT_TARGET = 'app';
 var target = process.env.TARGET || DEFAULT_TARGET;
 var port = process.env.PORT || 5000;
@@ -104,7 +105,6 @@ var pluginsProd = mode === 'prod' ? [
 
 module.exports = {
     devtool: mode === 'prod' ? 'source-map' : 'inline-source-map', //'eval-source-map',
-    debug: true,
     cache: true,
     context: path.resolve(path.join(clientFolder, 'scripts', target)), // the base directory for resolving the entry option
     entry: {
@@ -126,21 +126,19 @@ module.exports = {
     },
 
     resolve: {
-        extensions: ['', '.ts', '.js', '.json', '.css', '.html', '.scss', '.sass'],
+        extensions: ['.ts', '.js', '.json', '.css', '.html', '.scss', '.sass'],
         alias: {
             angular2: path.resolve('./node_modules/angular2'),
             rxjs: path.resolve('./node_modules/rxjs')
         }
     },
-    postcss: function() {
-        return [autoprefixer];
-    },
+
     module: {
-        preLoaders: [{
-            test: /\.ts$/,
-            loader: 'tslint-loader',
-            exclude: [/node_modules/]
-        }],
+        // preLoaders: [{
+        //     test: /\.ts$/,
+        //     loader: 'tslint-loader',
+        //     exclude: [/node_modules/]
+        // }],
         loaders: [
             // A special ts loader case for node_modules so we can ignore errors
             {
@@ -183,14 +181,14 @@ module.exports = {
             {
                 test: /\.scss$/,
                 loader: 'css-loader!postcss-loader!sass-loader?sourceMap',
-                cacheable: true,
+                //cacheable: true,
                 include: [new RegExp(clientFolder)]
             },
             // Support for SCSS as inject style in node_module folder
             {
                 test: /\.scss$/,
                 loader: 'style-loader!css-loader!postcss-loader!sass-loader?sourceMap',
-                cacheable: true,
+                //cacheable: true,
                 include: [/node_modules/]
             },
             // Support for SCSS as raw text in client folder
@@ -198,7 +196,7 @@ module.exports = {
                 test: /\.sass$/,
                 // Passing indentedSyntax query param to node-sass
                 loader: 'css-loader!postcss-loader!sass-loader?indentedSyntax&sourceMap',
-                cacheable: true,
+                //cacheable: true,
                 include: [new RegExp(clientFolder)]
             },
             // Support for SCSS as inject style in node_module folder
@@ -206,7 +204,7 @@ module.exports = {
                 test: /\.sass$/,
                 // Passing indentedSyntax query param to node-sass
                 loader: 'style-loader!css-loader!postcss-loader!sass-loader?indentedSyntax&sourceMap',
-                cacheable: true,
+                //cacheable: true,
                 include: [/node_modules/]
             },
             // support for .html as raw text
@@ -233,15 +231,7 @@ module.exports = {
             /reflect-metadata/
         ]
     },
-    sassLoader: {
-        includePaths: [
-            path.resolve(__dirname, './node_modules/ionicons/dist/scss')
-        ]
-    },
-    tslint: {
-        emitErrors: false,
-        failOnHint: false
-    },
+
     devServer: {
         historyApiFallback: true,
         hot: true,
@@ -269,19 +259,43 @@ module.exports = {
             CONFIG_TEMPLATE_SUFFIX_NOFUSE: JSON.stringify(getPlatformTemplateSuffix({ nofuse: true }))
         }),
 
+        new webpack.LoaderOptionsPlugin({
+            options: {
+                tslint: {
+                    emitErrors: false,
+                    failOnHint: false
+                },
+                sassLoader: {
+                    includePaths: [
+                        path.resolve(__dirname, './node_modules/ionicons/dist/scss')
+                    ]
+                },
+                postcss: function() {
+                    return [autoprefixer];
+                }
+            }
+        }),
+
         new ForkCheckerPlugin(),
 
-        new webpack.optimize.OccurenceOrderPlugin(true),
+        //new webpack.optimize.OccurenceOrderPlugin(true),
         // make sure we can import the chunks on node or fuse
-        new webpack.BannerPlugin(
-            'if (typeof window === "undefined") {window = global;}\n' +
-            'if (typeof window["webpackJsonp"]) {webpackJsonp = window.webpackJsonp;}\n', {
-                raw: true,
-                entryOnly: true
-            }),
+        // new webpack.BannerPlugin(
+        //     'if (typeof window === "undefined") {window = global;}\n' +
+        //     'if (typeof window["webpackJsonp"]) {webpackJsonp = window.webpackJsonp;}\n', {
+        //         raw: true,
+        //         entryOnly: true
+        //     }),
         new CommonsChunkPlugin({
             name: ['bundle', 'vendor', 'polyfills']
         }),
+
+        new ContextReplacementPlugin(
+            // The (\\|\/) piece accounts for path separators in *nix and Windows
+            /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
+            new RegExp(clientFolder) // location of your src
+        ),
+
         new HtmlwebpackPlugin({
             title: 'App - ' + target,
             baseUrl: '/',

@@ -112,7 +112,7 @@
         "parse5": "1.5.1",
         "reflect-metadata": "0.1.8",
         "rxjs": "5.0.0-beta.12",
-        "zone.js": "0.6.23"
+        "zone.js": "0.6.25"
     },
     "devDependencies": {
         "@types/core-js": "^0.9.28",
@@ -121,7 +121,7 @@
         "@types/lodash": "^4.14.34",
         "@types/node": "^6.0.38",
         "@types/protractor": "^1.5.16",
-        "@types/selenium-webdriver": "^2.44.26",
+        "@types/selenium-webdriver": "2.44.26",
         "@types/q": "^0.0.30",
         "@types/webpack": "^1.12.34",
         "angular2-template-loader": "^0.5.0",
@@ -171,10 +171,10 @@
         "tslint-eslint-rules": "^1.5.0",
         "tslint-loader": "^2.1.5",
         "typedoc": "0.3.12",
-        "typescript": "2.0.2",
+        "typescript": "2.0.3",
         "url-loader": "^0.5.7",
-        "webpack": "^1.13.2",
-        "webpack-dev-server": "^1.15.1",
+        "webpack": "^2.1.0-beta.22",
+        "webpack-dev-server": "^2.1.0-beta.2",
         "yargs": "^5.0.0"
     },
     "keywords": [],
